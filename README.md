@@ -30,7 +30,7 @@ npm install && npm run dev
 ├── app/
 │   ├── api/         # API routes
 │   ├── prompts/     # Prompt pages
-│   └── home.tsx     # Home page
+│   └── page.tsx     # Page page
 ├── components/      # React components
 ├── types/          # TypeScript definitions
 └── README.md

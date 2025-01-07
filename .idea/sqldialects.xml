@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
-    <file url="file://$PROJECT_DIR$/src/app/api/prompts/[id]/promptdetails.ts" dialect="GenericSQL" />
-    <file url="file://$PROJECT_DIR$/src/app/api/prompts/[id]/responses/responses.ts" dialect="GenericSQL" />
-    <file url="file://$PROJECT_DIR$/src/app/api/prompts/prompts.ts" dialect="GenericSQL" />
-    <file url="file://$PROJECT_DIR$/src/app/prompts/promptlist.tsx" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/app/api/prompts/[id]/responses/route.ts" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/app/api/prompts/[id]/route.ts" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/app/api/prompts/route.ts" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/app/prompts/page.tsx" dialect="GenericSQL" />
   </component>
 </project>

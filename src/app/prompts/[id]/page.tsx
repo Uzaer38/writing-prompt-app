@@ -16,16 +16,6 @@ async function fetchResponses(id: string): Promise<Response[]> {
   return res.json();
 }
 
-async function submitResponse(id: string, content: string): Promise<Response> {
-  const res = await fetch(`/api/prompts/${id}/responses`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ content })
-  });
-  if (!res.ok) throw new Error('Failed to submit response');
-  return res.json();
-}
-
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -71,22 +61,16 @@ export default function PromptPage({ params }: PageProps) {
     loadData();
   }, [promptId]);
 
-  const handleResponse = async (content: string) => {
-    if (!promptId) return;
-
-    try {
-      const newResponse = await submitResponse(promptId, content);
-      setResponses(prev => [newResponse, ...prev]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit response');
-    }
+  // Handler for when a new response is submitted through the editor
+  const handleNewResponse = (newResponse: Response) => {
+    setResponses(prev => [newResponse, ...prev]);
   };
 
   if (error) {
     return <div className="text-red-500">{error}</div>;
   }
 
-  if (!prompt) {
+  if (!prompt || !promptId) {
     return <div>Loading...</div>;
   }
 
@@ -96,13 +80,17 @@ export default function PromptPage({ params }: PageProps) {
       <p className="text-lg mb-8">{prompt.text}</p>
 
       <h2 className="text-2xl font-bold mb-4">Write a Response</h2>
-      <LexicalEditor onChange={handleResponse} />
+      <LexicalEditor
+        promptId={promptId}
+        onChange={(content) => console.log('Editor content changed:', content)}
+        onSubmitSuccess={handleNewResponse}
+      />
 
       <h2 className="text-2xl font-bold mt-8 mb-4">Responses</h2>
       <div className="space-y-4">
         {responses.map((response) => (
           <div key={response.id} className="border rounded p-4">
-            <div dangerouslySetInnerHTML={{ __html: response.content }} />
+            <p className="whitespace-pre-wrap">{response.content}</p>
             <small className="text-gray-500">
               {new Date(response.createdAt).toLocaleString()}
             </small>
