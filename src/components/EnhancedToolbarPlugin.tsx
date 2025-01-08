@@ -8,7 +8,7 @@ import {
   $createParagraphNode,
   TextFormatType,
 } from 'lexical';
-import { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   INSERT_ORDERED_LIST_COMMAND,
   INSERT_UNORDERED_LIST_COMMAND,
@@ -27,7 +27,8 @@ export function EnhancedToolbarPlugin() {
   const [isItalic, setIsItalic] = useState(false);
   const [isUnderline, setIsUnderline] = useState(false);
   const [blockType, setBlockType] = useState<string>('paragraph');
-
+  const [currentTextColor, setCurrentTextColor] = useState('#000000');
+  const [currentBgColor, setCurrentBgColor] = useState('#ffffff');
   const fontSizes = [
     { label: '12px', value: '12px' },
     { label: '16px', value: '16px' },
@@ -91,6 +92,7 @@ export function EnhancedToolbarPlugin() {
   };
 
   const applyTextColor = (color: string) => {
+    setCurrentTextColor(color);
     editor.update(() => {
       const selection = $getSelection();
       if ($isRangeSelection(selection)) {
@@ -100,6 +102,7 @@ export function EnhancedToolbarPlugin() {
   };
 
   const applyBackgroundColor = (color: string) => {
+    setCurrentBgColor(color);
     editor.update(() => {
       const selection = $getSelection();
       if ($isRangeSelection(selection)) {
@@ -138,7 +141,7 @@ export function EnhancedToolbarPlugin() {
       {/* Font Size */}
       <select
         onChange={(e) => applyFontSize(e.target.value)}
-        className="border rounded p-1 bg-black"
+        className="border rounded p-1 bg-purple-900"
         title="Font Size"
         defaultValue="16px"
       >
@@ -147,30 +150,52 @@ export function EnhancedToolbarPlugin() {
         ))}
       </select>
 
-      {/* Text Color */}
-      <input
-        type="color"
-        onChange={(e) => applyTextColor(e.target.value)}
-        className="w-8 h-8 p-0 border rounded cursor-pointer"
-        title="Text Color"
-        defaultValue="#ffffff"
-      />
-
-      {/* Background Color */}
-      <input
-        type="color"
-        onChange={(e) => applyBackgroundColor(e.target.value)}
-        className="w-8 h-8 p-0 border rounded cursor-pointer"
-        title="Background Color"
-        defaultValue="#000000"
-      />
+      {/* Color Controls */}
+      <div className="flex gap-2 items-center border-r pr-2">
+        <div className="relative">
+          <label className="relative flex flex-col items-center justify-center w-8 h-8 rounded bg-purple-900 hover:bg-purple-500 cursor-pointer">
+            <input
+              type="color"
+              value={currentTextColor}
+              onChange={(e) => applyTextColor(e.target.value)}
+              className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+              title="Text Color"
+            />
+            <span className="text-lg font-bold pointer-events-none">A</span>
+            <div
+              className="absolute bottom-0 left-1 right-1 h-1 rounded-sm pointer-events-none"
+              style={{ backgroundColor: currentTextColor }}
+            />
+          </label>
+        </div>
+        <div className="relative">
+          <label className="relative flex flex-col items-center justify-center w-8 h-8 rounded bg-purple-900 hover:bg-purple-500 cursor-pointer">
+            <input
+              type="color"
+              value={currentBgColor}
+              onChange={(e) => applyBackgroundColor(e.target.value)}
+              className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+              title="Highlight Color"
+            />
+            <img
+              src='/marker.png'
+              alt="marker"
+              className="h-5 w-auto pointer-events-none"
+            />
+            <div
+              className="absolute bottom-0 left-1 right-1 h-1 rounded-sm pointer-events-none"
+              style={{ backgroundColor: currentBgColor }}
+            />
+          </label>
+        </div>
+      </div>
 
       {/* Block Style Controls */}
-      <div className="flex gap-1 border-l border-r px-2 ">
+      <div className="flex gap-1 border-r px-2">
         <select
           value={blockType}
           onChange={(e) => formatHeading(e.target.value as HeadingTagType | 'paragraph')}
-          className="border rounded p-1 bg-black"
+          className="border rounded p-1 bg-purple-900"
           title="Text Style"
         >
           <option value="paragraph">Normal</option>

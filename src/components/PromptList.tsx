@@ -9,13 +9,16 @@ export default function PromptList({ prompts }: { prompts: Prompt[] }) {
         <Link
           key={prompt.id}
           href={`/prompts/${prompt.id}`}
-          className="block p-4 border rounded hover:bg-gray-50"
+          className="block p-4 border rounded hover:bg-purple-800 group"
         >
-          <h2 className="text-xl font-semibold">{prompt.title}</h2>
-          <p className="mt-2 text-gray-600">{prompt.text}</p>
+          <h2 className="text-xl font-semibold text-pink-300 group-hover:text-pink-100">
+            {prompt.title}
+          </h2>
+          <p className="mt-2 text-pink-300 group-hover:text-pink-100">
+            {prompt.text}
+          </p>
         </Link>
       ))}
     </div>
   );
 }
-
