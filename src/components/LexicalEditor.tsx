@@ -13,7 +13,7 @@ import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { TableCellNode, TableNode, TableRowNode } from '@lexical/table';
 import { CodeNode, CodeHighlightNode } from '@lexical/code';
 import { AutoLinkNode, LinkNode } from '@lexical/link';
-import { $getRoot, $getSelection, EditorState } from 'lexical';
+import { $getRoot, EditorState } from 'lexical';
 import { Response } from '@/types';
 import { EnhancedToolbarPlugin } from './EnhancedToolbarPlugin';
 
@@ -72,8 +72,6 @@ export default function LexicalEditor({ promptId, onChange, onSubmitSuccess }: E
 
     if (onChange) {
       state.read(() => {
-        const root = $getRoot();
-        const selection = $getSelection();
         const jsonString = JSON.stringify(state.toJSON());
         onChange(jsonString);
       });
@@ -136,7 +134,7 @@ export default function LexicalEditor({ promptId, onChange, onSubmitSuccess }: E
         <div className="border rounded-lg">
           <EnhancedToolbarPlugin />
           <RichTextPlugin
-            contentEditable={<ContentEditable className="p-4 min-h-[200px] focus:outline-none" />}
+            contentEditable={<ContentEditable className="p-4 min-h-[200px] focus:outline-none bg-black bg-opacity-15" />}
             placeholder={<div className="p-4 text-gray-400">Start writing...</div>}
             ErrorBoundary={LexicalErrorBoundary}
           />

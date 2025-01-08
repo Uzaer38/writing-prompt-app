@@ -28,7 +28,7 @@ export default function PromptForm() {
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="mt-1 block w-full rounded-md border p-2"
+          className="mt-1 block w-full rounded-md border p-2 text-black"
           required
         />
       </div>
@@ -37,7 +37,7 @@ export default function PromptForm() {
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          className="mt-1 block w-full rounded-md border p-2"
+          className="mt-1 block w-full rounded-md border p-2 text-black"
           rows={4}
           required
         />

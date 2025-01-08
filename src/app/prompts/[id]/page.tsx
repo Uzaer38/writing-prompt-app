@@ -1,5 +1,7 @@
 'use client';
+
 import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import LexicalEditor from '@/components/LexicalEditor';
 import ResponseDisplay from '@/components/ResponseDisplay';
 import Navbar from '@/components/Navbar';
@@ -26,6 +28,7 @@ export default function PromptPage({ params }: PageProps) {
   const [responses, setResponses] = useState<Response[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [promptId, setPromptId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const resolveParams = async () => {
@@ -34,6 +37,7 @@ export default function PromptPage({ params }: PageProps) {
         setPromptId(resolvedParams.id);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load page parameters');
+        setIsLoading(false);
       }
     };
 
@@ -54,6 +58,8 @@ export default function PromptPage({ params }: PageProps) {
         setResponses(responsesData);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -66,59 +72,92 @@ export default function PromptPage({ params }: PageProps) {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-purple-900">
+      <div className="bg-purple-900">
         <Navbar />
-        <div className="max-w-4xl mx-auto p-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="max-w-4xl mx-auto p-8"
+        >
           <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
             {error}
           </div>
-        </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-purple-900">
+        <Navbar />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="text-pink-300"
+        >
+          <p className="text-lg">Loading prompt...</p>
+        </motion.div>
       </div>
     );
   }
 
   if (!prompt || !promptId) {
-    return (
-      <div className="min-h-screen bg-purple-900">
-        <Navbar />
-        <div className="max-w-4xl mx-auto p-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-          </div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
-    <div className="min-h-screen bg-purple-900">
+    <div className="bg-purple-900">
       <Navbar />
-      <main className="max-w-4xl mx-auto p-8">
-        <article className="mb-8">
+      <motion.main
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-4xl mx-auto p-8"
+      >
+        <motion.article
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="mb-8"
+        >
           <h1 className="text-3xl font-bold mb-4 text-pink-300">{prompt.title}</h1>
           <div className="prose max-w-none text-pink-200">
             <p className="text-lg">{prompt.text}</p>
           </div>
-        </article>
+        </motion.article>
 
-        <section className="mb-12">
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="mb-12"
+        >
           <h2 className="text-2xl font-bold mb-4 text-pink-300">Write a Response</h2>
           <LexicalEditor
             promptId={promptId}
             onChange={(content) => console.log('Editor content changed:', content)}
             onSubmitSuccess={handleNewResponse}
           />
-        </section>
+        </motion.section>
 
-        <section>
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
+        >
           <h2 className="text-2xl font-bold mb-6 text-pink-300">Responses</h2>
-          <div className="space-y-6">
-            {responses.map((response) => (
-              <article
+          <AnimatePresence>
+            {responses.map((response, index) => (
+              <motion.article
                 key={response.id}
-                className="bg-purple-800 border border-purple-700 rounded-lg shadow-sm overflow-hidden"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ delay: index * 0.1, duration: 0.5 }}
+                className="bg-purple-800 border border-purple-700 rounded-lg shadow-sm overflow-hidden mb-6"
               >
                 <div className="p-6">
                   <ResponseDisplay content={response.content} />
@@ -134,17 +173,23 @@ export default function PromptPage({ params }: PageProps) {
                     </time>
                   </div>
                 </div>
-              </article>
+              </motion.article>
             ))}
-          </div>
+          </AnimatePresence>
 
           {responses.length === 0 && (
-            <div className="text-center py-12 text-pink-300">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8, duration: 0.5 }}
+              className="text-center py-12 text-pink-300"
+            >
               No responses yet. Be the first to respond!
-            </div>
+            </motion.div>
           )}
-        </section>
-      </main>
+        </motion.section>
+      </motion.main>
     </div>
   );
 }
+

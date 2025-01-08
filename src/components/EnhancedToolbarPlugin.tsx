@@ -8,7 +8,7 @@ import {
   $createParagraphNode,
   TextFormatType,
 } from 'lexical';
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   INSERT_ORDERED_LIST_COMMAND,
   INSERT_UNORDERED_LIST_COMMAND,
@@ -54,16 +54,27 @@ export function EnhancedToolbarPlugin() {
     }
   }, []);
 
-  useEffect(() => {
-    editor.registerCommand(
-      SELECTION_CHANGE_COMMAND,
-      () => {
-        updateToolbar();
-        return false;
-      },
-      COMMAND_PRIORITY_LOW
-    );
-  }, [editor, updateToolbar]);
+useEffect(() => {
+  const removeSelectionListener = editor.registerCommand(
+    SELECTION_CHANGE_COMMAND,
+    () => {
+      updateToolbar();
+      return false;
+    },
+    COMMAND_PRIORITY_LOW
+  );
+
+  const removeUpdateListener = editor.registerUpdateListener(({editorState}) => {
+    editorState.read(() => {
+      updateToolbar();
+    });
+  });
+
+  return () => {
+    removeSelectionListener();
+    removeUpdateListener();
+  };
+}, [editor, updateToolbar]);
 
   const formatHeading = (headingSize: HeadingTagType | 'paragraph') => {
     editor.update(() => {
@@ -117,21 +128,21 @@ export function EnhancedToolbarPlugin() {
       <div className="flex gap-1 border-r pr-2">
         <button
           onClick={() => applyStyleToSelection('bold')}
-          className={`p-2 rounded hover:bg-gray-200 ${isBold ? 'bg-gray-200' : ''}`}
+          className={`p-2 rounded hover:bg-purple-500 ${isBold ? 'bg-purple-500' : ''}`}
           title="Bold"
         >
           <span className="font-bold">B</span>
         </button>
         <button
           onClick={() => applyStyleToSelection('italic')}
-          className={`p-2 rounded hover:bg-gray-200 ${isItalic ? 'bg-gray-200' : ''}`}
+          className={`p-2 rounded hover:bg-purple-500 ${isItalic ? 'bg-purple-500' : ''}`}
           title="Italic"
         >
           <span className="italic">I</span>
         </button>
         <button
           onClick={() => applyStyleToSelection('underline')}
-          className={`p-2 rounded hover:bg-gray-200 ${isUnderline ? 'bg-gray-200' : ''}`}
+          className={`p-2 rounded hover:bg-purple-500 ${isUnderline ? 'bg-purple-500' : ''}`}
           title="Underline"
         >
           <span className="underline">U</span>
@@ -209,14 +220,14 @@ export function EnhancedToolbarPlugin() {
       <div className="flex gap-1">
         <button
           onClick={() => editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined)}
-          className="p-2 rounded hover:bg-gray-200"
+          className="p-2 rounded hover:bg-purple-500"
           title="Bullet List"
         >
           •
         </button>
         <button
           onClick={() => editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined)}
-          className="p-2 rounded hover:bg-gray-200"
+          className="p-2 rounded hover:bg-purple-500"
           title="Numbered List"
         >
           1.
