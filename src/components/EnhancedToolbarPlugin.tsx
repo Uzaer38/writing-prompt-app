@@ -1,4 +1,3 @@
-'use client';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import {
   $getSelection,
@@ -20,31 +19,20 @@ import {
   HeadingTagType,
 } from '@lexical/rich-text';
 import { $setBlocksType } from '@lexical/selection';
+import { $patchStyleText } from '@lexical/selection';
 
 export function EnhancedToolbarPlugin() {
-  // Helper function to convert hex to RGB number
-  const hexToRGB = (hex: string): number => {
-    // Remove the # if present
-    hex = hex.replace('#', '');
-    // Convert hex to RGB
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-    // Combine into a single number (RR GG BB)
-    return (r << 16) | (g << 8) | b;
-  };
-
   const [editor] = useLexicalComposerContext();
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
   const [isUnderline, setIsUnderline] = useState(false);
-  const [fontSize, setFontSize] = useState(16);
-  const [textColor, setTextColor] = useState('#000000');
-  const [bgColor, setBgColor] = useState('transparent');
   const [blockType, setBlockType] = useState<string>('paragraph');
 
   const fontSizes = [
-    12, 14, 16, 18, 20, 24, 28, 32, 36
+    { label: '12px', value: '12px' },
+    { label: '16px', value: '16px' },
+    { label: '20px', value: '20px' },
+    { label: '24px', value: '24px' },
   ];
 
   const updateToolbar = useCallback(() => {
@@ -55,8 +43,10 @@ export function EnhancedToolbarPlugin() {
       setIsUnderline(selection.hasFormat('underline'));
 
       const node = selection.anchor.getNode();
-      if ($isHeadingNode(node)) {
-        setBlockType(node.getTag());
+      const parent = node.getParent();
+
+      if ($isHeadingNode(parent)) {
+        setBlockType(parent.getTag());
       } else {
         setBlockType('paragraph');
       }
@@ -87,26 +77,57 @@ export function EnhancedToolbarPlugin() {
     });
   };
 
+  const applyStyleToSelection = (command: TextFormatType) => {
+    editor.dispatchCommand(FORMAT_TEXT_COMMAND, command);
+  };
+
+  const applyFontSize = (size: string) => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        $patchStyleText(selection, { 'font-size': size });
+      }
+    });
+  };
+
+  const applyTextColor = (color: string) => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        $patchStyleText(selection, { color });
+      }
+    });
+  };
+
+  const applyBackgroundColor = (color: string) => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        $patchStyleText(selection, { 'background-color': color });
+      }
+    });
+  };
+
   return (
-    <div className="border-b p-2 flex flex-wrap gap-2 items-center bg-gray-50">
+    <div className="border-b p-2 flex flex-wrap gap-2 items-center bg-black-50">
       {/* Text Style Controls */}
       <div className="flex gap-1 border-r pr-2">
         <button
-          onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold')}
+          onClick={() => applyStyleToSelection('bold')}
           className={`p-2 rounded hover:bg-gray-200 ${isBold ? 'bg-gray-200' : ''}`}
           title="Bold"
         >
           <span className="font-bold">B</span>
         </button>
         <button
-          onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic')}
+          onClick={() => applyStyleToSelection('italic')}
           className={`p-2 rounded hover:bg-gray-200 ${isItalic ? 'bg-gray-200' : ''}`}
           title="Italic"
         >
           <span className="italic">I</span>
         </button>
         <button
-          onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline')}
+          onClick={() => applyStyleToSelection('underline')}
           className={`p-2 rounded hover:bg-gray-200 ${isUnderline ? 'bg-gray-200' : ''}`}
           title="Underline"
         >
@@ -116,67 +137,40 @@ export function EnhancedToolbarPlugin() {
 
       {/* Font Size */}
       <select
-        value={fontSize}
-        onChange={(e) => {
-          const newSize = Number(e.target.value);
-          setFontSize(newSize);
-          editor.update(() => {
-            const selection = $getSelection();
-            if ($isRangeSelection(selection)) {
-              selection.formatText('fontSize' as TextFormatType, newSize);
-            }
-          });
-        }}
-        className="border rounded p-1"
+        onChange={(e) => applyFontSize(e.target.value)}
+        className="border rounded p-1 bg-black"
         title="Font Size"
+        defaultValue="16px"
       >
         {fontSizes.map(size => (
-          <option key={size} value={size}>{size}</option>
+          <option key={size.value} value={size.value}>{size.label}</option>
         ))}
       </select>
 
       {/* Text Color */}
       <input
         type="color"
-        value={textColor}
-        onChange={(e) => {
-          const newColor = e.target.value;
-          setTextColor(newColor);
-          editor.update(() => {
-            const selection = $getSelection();
-            if ($isRangeSelection(selection)) {
-              selection.formatText('textColor' as TextFormatType, hexToRGB(newColor));
-            }
-          });
-        }}
+        onChange={(e) => applyTextColor(e.target.value)}
         className="w-8 h-8 p-0 border rounded cursor-pointer"
         title="Text Color"
+        defaultValue="#ffffff"
       />
 
       {/* Background Color */}
       <input
         type="color"
-        value={bgColor === 'transparent' ? '#ffffff' : bgColor}
-        onChange={(e) => {
-          const newColor = e.target.value;
-          setBgColor(newColor);
-          editor.update(() => {
-            const selection = $getSelection();
-            if ($isRangeSelection(selection)) {
-              selection.formatText('backgroundColor' as TextFormatType, hexToRGB(newColor));
-            }
-          });
-        }}
+        onChange={(e) => applyBackgroundColor(e.target.value)}
         className="w-8 h-8 p-0 border rounded cursor-pointer"
-        title="Highlight Color"
+        title="Background Color"
+        defaultValue="#000000"
       />
 
       {/* Block Style Controls */}
-      <div className="flex gap-1 border-l border-r px-2">
+      <div className="flex gap-1 border-l border-r px-2 ">
         <select
           value={blockType}
           onChange={(e) => formatHeading(e.target.value as HeadingTagType | 'paragraph')}
-          className="border rounded p-1"
+          className="border rounded p-1 bg-black"
           title="Text Style"
         >
           <option value="paragraph">Normal</option>
@@ -201,50 +195,6 @@ export function EnhancedToolbarPlugin() {
           title="Numbered List"
         >
           1.
-        </button>
-      </div>
-
-      {/* Indentation Controls */}
-      <div className="flex gap-1 border-l pl-2">
-        <button
-          onClick={() => {
-            editor.update(() => {
-              const selection = $getSelection();
-              if ($isRangeSelection(selection)) {
-                selection.getNodes().forEach(node => {
-                  const element = editor.getElementByKey(node.getKey());
-                  if (element) {
-                    const currentMargin = parseInt(element.style.marginLeft || '0', 10);
-                    element.style.marginLeft = `${currentMargin + 20}px`;
-                  }
-                });
-              }
-            });
-          }}
-          className="p-2 rounded hover:bg-gray-200"
-          title="Increase Indent"
-        >
-          →
-        </button>
-        <button
-          onClick={() => {
-            editor.update(() => {
-              const selection = $getSelection();
-              if ($isRangeSelection(selection)) {
-                selection.getNodes().forEach(node => {
-                  const element = editor.getElementByKey(node.getKey());
-                  if (element) {
-                    const currentMargin = parseInt(element.style.marginLeft || '0', 10);
-                    element.style.marginLeft = `${Math.max(0, currentMargin - 20)}px`;
-                  }
-                });
-              }
-            });
-          }}
-          className="p-2 rounded hover:bg-gray-200"
-          title="Decrease Indent"
-        >
-          ←
         </button>
       </div>
     </div>

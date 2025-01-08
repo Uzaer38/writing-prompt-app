@@ -9,5 +9,5 @@ export interface Response {
   id: string;
   promptId: string;
   content: string;
-  createdAt: Date;
+  createdAt: string;
 }
